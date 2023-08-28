@@ -458,16 +458,10 @@ pub fn extract_default_ui_camera_view<T: Component>(
         if matches!(camera_ui, Some(&UiCameraConfig { show_ui: false, .. })) {
             continue;
         }
-        if let (
-            Some(logical_size),
-            Some((physical_origin, _)),
-            Some(physical_size),
-            Some(target_physical_size),
-        ) = (
+        if let (Some(logical_size), Some((physical_origin, _)), Some(physical_size)) = (
             camera.logical_viewport_size(),
             camera.physical_viewport_rect(),
             camera.physical_viewport_size(),
-            camera.physical_target_size(),
         ) {
             // use a projection matrix with the origin in the top left instead of the bottom left that comes with OrthographicProjection
             let projection_matrix = Mat4::orthographic_rh(
@@ -494,7 +488,6 @@ pub fn extract_default_ui_camera_view<T: Component>(
                         physical_size.x,
                         physical_size.y,
                     ),
-                    target_size: UVec4::new(target_physical_size.x, target_physical_size.y, 0, 0),
                     color_grading: Default::default(),
                 })
                 .id();

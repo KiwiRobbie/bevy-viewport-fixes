@@ -671,7 +671,6 @@ pub fn extract_cameras(
                         viewport_size.x,
                         viewport_size.y,
                     ),
-                    target_size: UVec4::new(target_size.x, target_size.y, 0, 0),
                     color_grading,
                 },
                 visible_entities.clone(),
