@@ -18,6 +18,7 @@ struct View {
     world_position: vec3<f32>,
     // viewport(x_origin, y_origin, width, height)
     viewport: vec4<f32>,
+    target_size: vec4<f32>,
     color_grading: ColorGrading,
     mip_bias: f32,
 };

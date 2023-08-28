@@ -57,7 +57,9 @@ impl Plugin for TemporalAntiAliasPlugin {
         app.insert_resource(Msaa::Off)
             .register_type::<TemporalAntiAliasSettings>();
 
-        let Ok(render_app) = app.get_sub_app_mut(RenderApp) else { return };
+        let Ok(render_app) = app.get_sub_app_mut(RenderApp) else {
+            return;
+        };
 
         render_app
             .init_resource::<SpecializedRenderPipelines<TAAPipeline>>()
@@ -86,7 +88,9 @@ impl Plugin for TemporalAntiAliasPlugin {
     }
 
     fn finish(&self, app: &mut App) {
-        let Ok(render_app) = app.get_sub_app_mut(RenderApp) else { return };
+        let Ok(render_app) = app.get_sub_app_mut(RenderApp) else {
+            return;
+        };
 
         render_app.init_resource::<TAAPipeline>();
     }
@@ -188,11 +192,7 @@ impl ViewNode for TAANode {
         ) else {
             return Ok(());
         };
-        let (
-            Some(taa_pipeline),
-            Some(prepass_motion_vectors_texture),
-            Some(prepass_depth_texture),
-        ) = (
+        let (Some(taa_pipeline), Some(prepass_motion_vectors_texture), Some(prepass_depth_texture)) = (
             pipeline_cache.get_render_pipeline(taa_pipeline_id.0),
             &prepass_textures.motion_vectors,
             &prepass_textures.depth,
@@ -484,13 +484,13 @@ fn prepare_taa_history_textures(
     views: Query<(Entity, &ExtractedCamera, &ExtractedView), With<TemporalAntiAliasSettings>>,
 ) {
     for (entity, camera, view) in &views {
-        if let Some(physical_viewport_size) = camera.physical_viewport_size {
+        if let Some(physical_target_size) = camera.physical_target_size {
             let mut texture_descriptor = TextureDescriptor {
                 label: None,
                 size: Extent3d {
                     depth_or_array_layers: 1,
-                    width: physical_viewport_size.x,
-                    height: physical_viewport_size.y,
+                    width: physical_target_size.x,
+                    height: physical_target_size.y,
                 },
                 mip_level_count: 1,
                 sample_count: 1,

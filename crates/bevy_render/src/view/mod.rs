@@ -18,7 +18,7 @@ use crate::{
 };
 use bevy_app::{App, Plugin};
 use bevy_ecs::prelude::*;
-use bevy_math::{Mat4, UVec4, Vec3, Vec4, Vec4Swizzles};
+use bevy_math::{Mat4, UVec4, Vec2, Vec3, Vec4, Vec4Swizzles};
 use bevy_reflect::{Reflect, TypeUuid};
 use bevy_transform::components::GlobalTransform;
 use bevy_utils::HashMap;
@@ -116,6 +116,7 @@ pub struct ExtractedView {
     pub hdr: bool,
     // uvec4(origin.x, origin.y, width, height)
     pub viewport: UVec4,
+    pub target_size: UVec4,
     pub color_grading: ColorGrading,
 }
 
@@ -172,6 +173,7 @@ pub struct ViewUniform {
     world_position: Vec3,
     // viewport(x_origin, y_origin, width, height)
     viewport: Vec4,
+    target_size: Vec4,
     color_grading: ColorGrading,
     mip_bias: f32,
 }
@@ -364,6 +366,7 @@ pub fn prepare_view_uniforms(
 
     for (entity, camera, temporal_jitter, mip_bias) in &views {
         let viewport = camera.viewport.as_vec4();
+        let target = camera.target_size.as_vec4();
         let unjittered_projection = camera.projection;
         let mut projection = unjittered_projection;
 
@@ -394,6 +397,7 @@ pub fn prepare_view_uniforms(
                 inverse_projection,
                 world_position: camera.transform.translation(),
                 viewport,
+                target_size: target,
                 color_grading: camera.color_grading,
                 mip_bias: mip_bias.unwrap_or(&MipBias(0.0)).0,
             }),

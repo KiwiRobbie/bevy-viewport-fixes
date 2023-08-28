@@ -33,7 +33,7 @@ fn load_noise(pixel_coordinates: vec2<i32>) -> vec2<f32> {
 // Calculate differences in depth between neighbor pixels (later used by the spatial denoiser pass to preserve object edges)
 fn calculate_neighboring_depth_differences(pixel_coordinates: vec2<i32>) -> f32 {
     // Sample the pixel's depth and 4 depths around it
-    let uv = vec2<f32>(pixel_coordinates) / view.viewport.zw;
+    let uv = (vec2<f32>(pixel_coordinates) ) / view.target_size.xy;
     let depths_upper_left = textureGather(0, preprocessed_depth, point_clamp_sampler, uv);
     let depths_bottom_right = textureGather(0, preprocessed_depth, point_clamp_sampler, uv, vec2<i32>(1i, 1i));
     let depth_center = depths_upper_left.y;
@@ -61,10 +61,7 @@ fn calculate_neighboring_depth_differences(pixel_coordinates: vec2<i32>) -> f32 
 
 // TODO: Remove this once https://github.com/gfx-rs/naga/pull/2353 lands
 fn mypack4x8unorm(e: vec4<f32>) -> u32 {
-    return u32(clamp(e.x, 0.0, 1.0) * 255.0 + 0.5) |
-    u32(clamp(e.y, 0.0, 1.0) * 255.0 + 0.5) << 8u |
-    u32(clamp(e.z, 0.0, 1.0) * 255.0 + 0.5) << 16u |
-    u32(clamp(e.w, 0.0, 1.0) * 255.0 + 0.5) << 24u;
+    return u32(clamp(e.x, 0.0, 1.0) * 255.0 + 0.5) | u32(clamp(e.y, 0.0, 1.0) * 255.0 + 0.5) << 8u | u32(clamp(e.z, 0.0, 1.0) * 255.0 + 0.5) << 16u | u32(clamp(e.w, 0.0, 1.0) * 255.0 + 0.5) << 24u;
 }
 
 fn load_normal_view_space(uv: vec2<f32>) -> vec3<f32> {
@@ -102,7 +99,7 @@ fn gtao(@builtin(global_invocation_id) global_id: vec3<u32>) {
     let falloff_add = falloff_from / falloff_range + 1.0;
 
     let pixel_coordinates = vec2<i32>(global_id.xy);
-    let uv = (vec2<f32>(pixel_coordinates) + 0.5) / view.viewport.zw;
+    let uv = (vec2<f32>(pixel_coordinates)) / view.target_size.xy;
 
     var pixel_depth = calculate_neighboring_depth_differences(pixel_coordinates);
     pixel_depth += 0.00001; // Avoid depth precision issues

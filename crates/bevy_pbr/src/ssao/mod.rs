@@ -86,7 +86,9 @@ impl Plugin for ScreenSpaceAmbientOcclusionPlugin {
     }
 
     fn finish(&self, app: &mut App) {
-        let Ok(render_app) = app.get_sub_app_mut(RenderApp) else { return };
+        let Ok(render_app) = app.get_sub_app_mut(RenderApp) else {
+            return;
+        };
 
         if !render_app
             .world
@@ -217,16 +219,17 @@ impl ViewNode for SsaoNode {
         let pipelines = world.resource::<SsaoPipelines>();
         let pipeline_cache = world.resource::<PipelineCache>();
         let (
-            Some(camera_size),
+            Some(target_size),
             Some(preprocess_depth_pipeline),
             Some(spatial_denoise_pipeline),
             Some(gtao_pipeline),
         ) = (
-            camera.physical_viewport_size,
+            camera.physical_target_size,
             pipeline_cache.get_compute_pipeline(pipelines.preprocess_depth_pipeline),
             pipeline_cache.get_compute_pipeline(pipelines.spatial_denoise_pipeline),
             pipeline_cache.get_compute_pipeline(pipeline_id.0),
-        ) else {
+        )
+        else {
             return Ok(());
         };
 
@@ -247,8 +250,8 @@ impl ViewNode for SsaoNode {
                 &[view_uniform_offset.offset],
             );
             preprocess_depth_pass.dispatch_workgroups(
-                div_ceil(camera_size.x, 16),
-                div_ceil(camera_size.y, 16),
+                div_ceil(target_size.x, 16),
+                div_ceil(target_size.y, 16),
                 1,
             );
         }
@@ -268,8 +271,8 @@ impl ViewNode for SsaoNode {
                 &[view_uniform_offset.offset],
             );
             gtao_pass.dispatch_workgroups(
-                div_ceil(camera_size.x, 8),
-                div_ceil(camera_size.y, 8),
+                div_ceil(target_size.x, 8),
+                div_ceil(target_size.y, 8),
                 1,
             );
         }
@@ -289,8 +292,8 @@ impl ViewNode for SsaoNode {
                 &[view_uniform_offset.offset],
             );
             spatial_denoise_pass.dispatch_workgroups(
-                div_ceil(camera_size.x, 8),
-                div_ceil(camera_size.y, 8),
+                div_ceil(target_size.x, 8),
+                div_ceil(target_size.y, 8),
                 1,
             );
         }
@@ -640,10 +643,12 @@ fn prepare_ssao_textures(
     views: Query<(Entity, &ExtractedCamera), With<ScreenSpaceAmbientOcclusionSettings>>,
 ) {
     for (entity, camera) in &views {
-        let Some(physical_viewport_size) = camera.physical_viewport_size else { continue };
+        let Some(physical_target_size) = camera.physical_target_size else {
+            continue;
+        };
         let size = Extent3d {
-            width: physical_viewport_size.x,
-            height: physical_viewport_size.y,
+            width: physical_target_size.x,
+            height: physical_target_size.y,
             depth_or_array_layers: 1,
         };
 
